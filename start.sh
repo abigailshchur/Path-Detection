@@ -6,4 +6,3 @@ mkdir video_frames
 cd ..
 export PYTHONPATH=$PYTHONPATH:`pwd`:`pwd`/slim
 echo "Lets goooo"
-jupyter notebook
