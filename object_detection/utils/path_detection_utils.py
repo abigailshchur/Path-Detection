@@ -39,17 +39,44 @@ def get_segmentation(path, detection_graph, category_index, display_image = True
 				plt.imshow(image_np)
 	return boxes, scores, classes
 
+"""
+Removes bounding boxes that are not classified as people
+"""
 def remove_non_human(boxes, scores, classes):
 	human_idx = np.where(classes[0]==1)
 	human_boxes = boxes[0][human_idx]
 	human_scores = scores[0][human_idx]
 	return human_boxes, human_scores
 
+"""
+Removes bounding boxes with low probabilities
+"""
 def remove_low_prob(boxes, scores, threshold = 0.25):
 	good_idx = np.where(scores > threshold)
 	good_boxes = boxes[good_idx]
 	good_scores = scores[good_idx]
 	return good_boxes, good_scores
 
+"""
+Ensures that people are rectangles such that height > width
+"""
 def remove_poorly_sized_people(boxes, scores):
-	return "well shit"
+	return "well..."
+
+
+"""
+Returns a similarity score between two boxes
+box1: [y_coord (top left), x_coord (top left), y_coord (bottom right), x_coord (bottom_right)]
+
+Method 1 - average Euclidean distance between the two 
+"""
+def get_box_similarity_score(box1, box2, score1, score2, img_w, img_h, method=1):
+    if (method == 1):
+        d1 = np.linalg.norm(np.array([box1[1],box1[0]]) - np.array([box2[1],box2[0]]))
+        d2 = np.linalg.norm(np.array([box1[3],box1[2]]) - np.array([box2[3],box2[2]]))
+        return (d1+d2)/2.0
+    else:
+        return 0
+
+
+#def match_in_frame
