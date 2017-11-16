@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 from PIL import Image
 import tensorflow as tf
 import visualization_utils as vis_util
+from matplotlib.patches import Circle
 
 def load_image_into_numpy_array(image):
     (im_width, im_height) = image.size
@@ -79,4 +80,17 @@ def get_box_similarity_score(box1, box2, score1, score2, img_w, img_h, method=1)
         return 0
 
 
-#def match_in_frame
+def draw_box(box, width, height, image_np):
+    x = [box[1]*width, box[3]*width]
+    y = [box[0]*height, box[2]*height]
+    # Create a figure. Equal aspect so circles look circular
+    fig,ax = plt.subplots(1)
+    ax.set_aspect('equal')
+    # Show the image
+    ax.imshow(image_np)
+    # Now, loop through coord arrays, and create a circle at each x,y pair
+    for xx,yy in zip(x,y):
+        circ = Circle((xx,yy),50)
+        ax.add_patch(circ)
+    # Show the image
+    plt.show()
