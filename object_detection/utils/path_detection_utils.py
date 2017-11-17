@@ -52,7 +52,7 @@ def remove_non_human(boxes, scores, classes):
 """
 Removes bounding boxes with low probabilities
 """
-def remove_low_prob(boxes, scores, threshold = 0.25):
+def remove_low_prob(boxes, scores, threshold = 0.50):
 	good_idx = np.where(scores > threshold)
 	good_boxes = boxes[good_idx]
 	good_scores = scores[good_idx]
@@ -62,7 +62,13 @@ def remove_low_prob(boxes, scores, threshold = 0.25):
 Ensures that people are rectangles such that height > width
 """
 def remove_poorly_sized_people(boxes, scores):
-	return "well..."
+	good_boxes = []
+	good_scores = []
+	for i in range(len(boxes)):
+		if abs(boxes[i][3]-boxes[i][1]) < abs(boxes[i][2]-boxes[i][0]):
+			good_boxes.append(boxes[i])
+			good_scores.append(scores[i])
+	return good_boxes, good_scores
 
 
 """
@@ -73,8 +79,10 @@ Method 1 - average Euclidean distance between the two
 """
 def get_box_similarity_score(box1, box2, score1, score2, img_w, img_h, method=1):
     if (method == 1):
-        d1 = np.linalg.norm(np.array([box1[1],box1[0]]) - np.array([box2[1],box2[0]]))
-        d2 = np.linalg.norm(np.array([box1[3],box1[2]]) - np.array([box2[3],box2[2]]))
+        d1 = np.array([box1[1],box1[0]]) - np.array([box2[1],box2[0]])
+        d1 = (d1[0]*d1[0]+d1[1]*d1[1])**(0.5)
+        d2 = np.array([box1[3],box1[2]]) - np.array([box2[3],box2[2]])
+        d2 = (d2[0]*d2[0]+d2[1]*d2[1])**(0.5)
         return (d1+d2)/2.0
     else:
         return 0
@@ -94,3 +102,5 @@ def draw_box(box, width, height, image_np):
         ax.add_patch(circ)
     # Show the image
     plt.show()
+
+#def clasify_box(box):
