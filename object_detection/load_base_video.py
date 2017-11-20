@@ -14,7 +14,7 @@ from PIL import Image
 
 import cv2
 
-vidcap = cv2.VideoCapture('test_videos/video1.m4v')
+vidcap = cv2.VideoCapture('test_videos/testclip.mp4')
 success,image = vidcap.read()
 count = 0
 success = True
