@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import path_detection_utils as path_util
 
@@ -114,16 +115,14 @@ path2: path to second image frame
 returns: optical flow matrix
 """
 def get_optical_flow(path1, path2):
-	#read in paths of frames
 	frame1 = cv2.imread(path1)
 	frame2 = cv2.imread(path2)
+
 	hsv = np.zeros_like(frame1)
 	hsv[...,1] = 255
-	#convert to greyscale
 	prvs = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
 	nxt = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
 	#flow = cv2.calcOpticalFlowFarneback(prvs,nxt,None, 0.5,3.0,15.0,3.0,5.0,1.2,0.0)
-	#calculate flow using Farneback
 	flow = cv2.calcOpticalFlowFarneback(prvs,nxt,0.5,1,3,15,3,5,1)
 
 	#mag, ang = cv2.cartToPolar(flow[...,0], flow[...,1])
@@ -143,7 +142,7 @@ def get_optical_flow(path1, path2):
 #cap.release()
 #np.savetxt("foo.csv", ang , delimiter=",")
 	#cv2.destroyAllWindows()
-	return flow#TODO
+	return flow
 
 """
 flow: optical flow matrix:
@@ -153,19 +152,18 @@ returns: optical flow vector corresponding to that person (2d array or 3d array)
 """
 def get_optical_flow_vector(flow, box):
 	if flow != []:
+		box = [int(box[0]*Y_SIZE),int(box[1]*X_SIZE), int(box[2]*Y_SIZE), int(box[3]*X_SIZE)]
+		print(box)
 		xflow = []
 		yflow = []
-		#add in all points that lie in the box
 		for i in range(box[1],box[3]):
-			for j in range(box[2],box[0]):
+			for j in range(box[0],box[2]):
 				xflow.append(flow[i][j][0])
 				yflow.append(flow[i][j][1])
 		boxflow = [xflow,yflow]
 		#print boxflow
-		#average up points in box
 		x = np.mean(boxflow[0])
 		y = np.mean(boxflow[1])
-		#return average vector in cartesian coordinates
 		return [x,y]
 	else:
 		return None
