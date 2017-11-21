@@ -169,7 +169,14 @@ def get_optical_flow_vector(flow, box):
 		return None
 
 
-
+def bucket_vectors(vect):
+	v1 = array([vect[0]])
+	v2 = array([vect[1]])
+	mag, ang = cv2.cartToPolar(v1, v2, angleInDegrees = 1)
+	if ang > 90 and ang < 270:
+		return "left"
+	else:
+		return "right"
 
 
 
