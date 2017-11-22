@@ -22,5 +22,5 @@ while success:
   success,image = vidcap.read()
   cv2.imwrite("video_frames/frame%d.jpg" % count, image)     # save frame as JPEG file
   count += 1
-  if (count > 500):
-        success = False
+  #if (count > 500):
+  #      success = False

@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import path_detection_utils as path_util
 
-def collect_data(path, start_frame, end_frame, detection_graph, category_index):
+def collect_data(path, start_frame, end_frame, last_frame, detection_graph, category_index):
 	in_frame = [] # ids of people in frame at current time step
 	available_people = range(1000000)[::-1] #queue of people ids
 	person_to_box = {} # maps person id -> box
@@ -13,7 +13,7 @@ def collect_data(path, start_frame, end_frame, detection_graph, category_index):
 	for i in range(start_frame, end_frame + 1):
 		filename = path + str(i) + '.jpg'
 		# next file is probably needed for optical flow
-		next_file = path + str(i+1) + '.jpg' if i < end_frame else "end"
+		next_file = path + str(i+6) + '.jpg' if i+6 < last_frame else "end"
 		# flow should contain optical flow matrix?
 		flow = get_optical_flow(filename, next_file)
 
@@ -76,6 +76,7 @@ def collect_data(path, start_frame, end_frame, detection_graph, category_index):
 			data_entry["box"] = person_to_box[in_frame[j]]
 			data_entry["flow"] = in_frame_flows[j]
 			data_entry["label"] = person_to_label[in_frame[j]]
+			data_entry["direction"] = bucket_vectors(in_frame_flows[j])
 			all_data.append(data_entry)
 	return all_data, person_to_label
 
@@ -115,15 +116,22 @@ path2: path to second image frame
 returns: optical flow matrix
 """
 def get_optical_flow(path1, path2):
+	if path2 == "end":
+		return "nah"
+	#print(path1)
+	#print(path2)
 	frame1 = cv2.imread(path1)
 	frame2 = cv2.imread(path2)
+
 
 	hsv = np.zeros_like(frame1)
 	hsv[...,1] = 255
 	prvs = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
 	nxt = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+	#print(np.shape(prvs))
+	#print(np.shape(nxt))	
 	#flow = cv2.calcOpticalFlowFarneback(prvs,nxt,None, 0.5,3.0,15.0,3.0,5.0,1.2,0.0)
-	flow = cv2.calcOpticalFlowFarneback(prvs,nxt,0.5,1,3,15,3,5,1)
+	flow = cv2.calcOpticalFlowFarneback(prvs,nxt, None, 0.5, 3, 15, 3, 5, 1.2, 0)
 
 	#mag, ang = cv2.cartToPolar(flow[...,0], flow[...,1])
 	#hsv[...,0] = ang*180/np.pi/2
@@ -151,9 +159,13 @@ box: coordinates of box around person, has coordinates of top left point and bot
 returns: optical flow vector corresponding to that person (2d array or 3d array)
 """
 def get_optical_flow_vector(flow, box):
+	if flow == "nah":
+		return "nah"
+	Y_SIZE=1280
+	X_SIZE=720
 	if flow != []:
 		box = [int(box[0]*Y_SIZE),int(box[1]*X_SIZE), int(box[2]*Y_SIZE), int(box[3]*X_SIZE)]
-		print(box)
+		#print(box)
 		xflow = []
 		yflow = []
 		for i in range(box[1],box[3]):
@@ -170,8 +182,10 @@ def get_optical_flow_vector(flow, box):
 
 
 def bucket_vectors(vect):
-	v1 = array([vect[0]])
-	v2 = array([vect[1]])
+	if vect == "nah":
+		return "nah"
+	v1 = np.array([vect[0]])
+	v2 = np.array([vect[1]])
 	mag, ang = cv2.cartToPolar(v1, v2, angleInDegrees = 1)
 	if ang > 90 and ang < 270:
 		return "left"
