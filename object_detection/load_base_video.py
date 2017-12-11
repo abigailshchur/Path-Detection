@@ -9,18 +9,25 @@ import zipfile
 from collections import defaultdict
 from io import StringIO
 from matplotlib import pyplot as plt
-from PIL import Image
+from PIL import Image, ImageChops
 
 
 import cv2
 
-vidcap = cv2.VideoCapture('test_videos/testclip.mp4')
+vidcap = cv2.VideoCapture('test_videos/T_1.mp4')
 success,image = vidcap.read()
 count = 0
 success = True
+box = None
 while success:
   success,image = vidcap.read()
   cv2.imwrite("video_frames/frame%d.jpg" % count, image)     # save frame as JPEG file
-  count += 1
-  #if (count > 500):
-  #      success = False
+  img = Image.open("video_frames/frame%d.jpg" % count)
+  if box == None:
+  	bg = Image.new(img.mode, img.size, img.getpixel((0,0)))
+  	diff = ImageChops.difference(img, bg)
+  	diff = ImageChops.add(diff, diff, 2.0, -100)
+  	box = diff.getbbox()
+  img = img.crop(box)
+  cv2.imwrite("video_frames/frame%d.jpg" % count, np.asarray( img, dtype="int32" ))
+  count+=1

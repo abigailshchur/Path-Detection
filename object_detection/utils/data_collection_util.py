@@ -9,13 +9,15 @@ def collect_data(path, start_frame, end_frame, last_frame, detection_graph, cate
 	person_to_label = {} # maps person id -> label
 	magic_number = 0.05 # the most magical of magical numbers
 	all_data = [] # will be pandas matrix
-
+	count_pics=0
+	#for i in range(start_frame, end_frame + 1, 2):
 	for i in range(start_frame, end_frame + 1):
+		count_pics+=1
 		filename = path + str(i) + '.jpg'
 		# next file is probably needed for optical flow
 		next_file = path + str(i+6) + '.jpg' if i+6 < last_frame else "end"
 		# flow should contain optical flow matrix?
-		flow = get_optical_flow(filename, next_file)
+		flow = get_optical_flow(filename, next_file, count_pics)
 
 		# running image segmentation on current frame
 		boxes, scores, classes = path_util.get_segmentation(filename,detection_graph, category_index, False)
@@ -66,6 +68,7 @@ def collect_data(path, start_frame, end_frame, last_frame, detection_graph, cate
 
 		# calculate optical flow per person
 		in_frame_flows = [get_optical_flow_vector(flow, person_to_box[person]) for person in in_frame]
+		in_frame_flows2 = [get_optical_flow_vector2(flow, person_to_box[person]) for person in in_frame]
 
 		# save everything to all_data
 		for j in range(len(in_frame)):
@@ -75,8 +78,10 @@ def collect_data(path, start_frame, end_frame, last_frame, detection_graph, cate
 			data_entry["person_id"] = in_frame[j]
 			data_entry["box"] = person_to_box[in_frame[j]]
 			data_entry["flow"] = in_frame_flows[j]
+			data_entry["flow2"] = in_frame_flows2[j]
 			data_entry["label"] = person_to_label[in_frame[j]]
 			data_entry["direction"] = bucket_vectors(in_frame_flows[j])
+			data_entry["direction2"] = bucket_vectors(in_frame_flows2[j])
 			all_data.append(data_entry)
 	return all_data, person_to_label
 
@@ -115,7 +120,7 @@ path1: path to first image frame
 path2: path to second image frame
 returns: optical flow matrix
 """
-def get_optical_flow(path1, path2):
+def get_optical_flow(path1, path2, c):
 	if path2 == "end":
 		return "nah"
 	#print(path1)
@@ -131,7 +136,8 @@ def get_optical_flow(path1, path2):
 	#print(np.shape(prvs))
 	#print(np.shape(nxt))	
 	#flow = cv2.calcOpticalFlowFarneback(prvs,nxt,None, 0.5,3.0,15.0,3.0,5.0,1.2,0.0)
-	flow = cv2.calcOpticalFlowFarneback(prvs,nxt, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+	#flow = cv2.calcOpticalFlowFarneback(prvs,nxt, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+	flow = cv2.calcOpticalFlowFarneback(prvs,nxt, None, 0.5, 3, 15, 3, 7, 1.2, 0)
 
 	#mag, ang = cv2.cartToPolar(flow[...,0], flow[...,1])
 	#hsv[...,0] = ang*180/np.pi/2
@@ -139,9 +145,8 @@ def get_optical_flow(path1, path2):
 	#bgr = cv2.cvtColor(hsv,cv2.COLOR_HSV2BGR)
 	#cv2.imshow('frame2',bgr)
 	#k = cv2.waitKey(30) & 0xff
-
-	#cv2.imwrite('opticalfb.png',frame2)
-	#cv2.imwrite('opticalhsv.png',bgr)
+	#cv2.imwrite('opticalfb'+ str(c)+ '.png',frame2)
+	#cv2.imwrite('opticalhsv' + str(c)+'.png',bgr)
 #prvs = next
 
 	#print np.shape(flow)
@@ -180,6 +185,38 @@ def get_optical_flow_vector(flow, box):
 	else:
 		return None
 
+
+
+def get_optical_flow_vector2(flow, box):
+	if flow == "nah":
+		return "nah"
+	Y_SIZE=1280
+	X_SIZE=720
+	l_count_x = []
+	l_count_y = []
+	r_count_x = []
+	r_count_y = []
+	if flow != []:
+		box = [int(box[0]*Y_SIZE),int(box[1]*X_SIZE), int(box[2]*Y_SIZE), int(box[3]*X_SIZE)]
+		#print(box)
+		for i in range(box[1],box[3]):
+			for j in range(box[0],box[2]):
+				if bucket_vectors(flow[i][j]) is "left":
+					l_count_x.append(flow[i][j][0])
+					l_count_y.append(flow[i][j][1])
+				else:
+					r_count_x.append(flow[i][j][0])
+					r_count_y.append(flow[i][j][1])
+		if len(l_count_x) >= len(r_count_x):
+			boxflow = [l_count_x,l_count_y]
+		else:
+			boxflow = [r_count_x,r_count_y]
+		#print boxflow
+		x = np.mean(boxflow[0])
+		y = np.mean(boxflow[1])
+		return [x,y]
+	else:
+		return None
 
 def bucket_vectors(vect):
 	if vect == "nah":

@@ -52,7 +52,7 @@ def remove_non_human(boxes, scores, classes):
 """
 Removes bounding boxes with low probabilities
 """
-def remove_low_prob(boxes, scores, threshold = 0.50):
+def remove_low_prob(boxes, scores, threshold = 0.40):
 	good_idx = np.where(scores > threshold)
 	good_boxes = boxes[good_idx]
 	good_scores = scores[good_idx]
