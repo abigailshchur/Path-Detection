@@ -2,6 +2,9 @@ import cv2
 import numpy as np
 import path_detection_utils as path_util
 
+height_img = 0
+width_img = 0
+
 def collect_data(path, start_frame, end_frame, last_frame, detection_graph, category_index):
 	in_frame = [] # ids of people in frame at current time step
 	available_people = range(1000000)[::-1] #queue of people ids
@@ -10,8 +13,14 @@ def collect_data(path, start_frame, end_frame, last_frame, detection_graph, cate
 	magic_number = 0.05 # the most magical of magical numbers
 	all_data = [] # will be pandas matrix
 	count_pics=0
+	base_img = cv2.imread(path+"0.jpg")
+	height_img, width_img, channels = base_img.shape
+	print(height_img)
+	print(width_img)
 	#for i in range(start_frame, end_frame + 1, 2):
 	for i in range(start_frame, end_frame + 1):
+		if (i % 100 == 0):
+			print(i)
 		count_pics+=1
 		filename = path + str(i) + '.jpg'
 		# next file is probably needed for optical flow
@@ -166,8 +175,8 @@ returns: optical flow vector corresponding to that person (2d array or 3d array)
 def get_optical_flow_vector(flow, box):
 	if flow == "nah":
 		return "nah"
-	Y_SIZE=1280
-	X_SIZE=720
+	Y_SIZE=height_img
+	X_SIZE=width_img
 	if flow != []:
 		box = [int(box[0]*Y_SIZE),int(box[1]*X_SIZE), int(box[2]*Y_SIZE), int(box[3]*X_SIZE)]
 		#print(box)
@@ -190,8 +199,8 @@ def get_optical_flow_vector(flow, box):
 def get_optical_flow_vector2(flow, box):
 	if flow == "nah":
 		return "nah"
-	Y_SIZE=1280
-	X_SIZE=720
+	Y_SIZE=height_img
+	X_SIZE=width_img
 	l_count_x = []
 	l_count_y = []
 	r_count_x = []
