@@ -2,8 +2,6 @@ import cv2
 import numpy as np
 import path_detection_utils as path_util
 
-height_img = 0
-width_img = 0
 
 def collect_data(path, start_frame, end_frame, last_frame, detection_graph, category_index):
 	in_frame = [] # ids of people in frame at current time step
@@ -14,9 +12,9 @@ def collect_data(path, start_frame, end_frame, last_frame, detection_graph, cate
 	all_data = [] # will be pandas matrix
 	count_pics=0
 	base_img = cv2.imread(path+"0.jpg")
-	height_img, width_img, channels = base_img.shape
-	print(height_img)
-	print(width_img)
+	X_SIZE, Y_SIZE, channels = base_img.shape
+	print(X_SIZE)
+	print(Y_SIZE)
 	#for i in range(start_frame, end_frame + 1, 2):
 	for i in range(start_frame, end_frame + 1):
 		if (i % 100 == 0):
@@ -76,8 +74,8 @@ def collect_data(path, start_frame, end_frame, last_frame, detection_graph, cate
 			person_to_label[person] = label
 
 		# calculate optical flow per person
-		in_frame_flows = [get_optical_flow_vector(flow, person_to_box[person]) for person in in_frame]
-		in_frame_flows2 = [get_optical_flow_vector2(flow, person_to_box[person]) for person in in_frame]
+		in_frame_flows = [get_optical_flow_vector(flow, person_to_box[person], X_SIZE, Y_SIZE) for person in in_frame]
+		in_frame_flows2 = [get_optical_flow_vector2(flow, person_to_box[person], X_SIZE, Y_SIZE) for person in in_frame]
 
 		# save everything to all_data
 		for j in range(len(in_frame)):
@@ -172,11 +170,10 @@ box: coordinates of box around person, has coordinates of top left point and bot
 -> box = [y coord (top left), x coord (top left), y coord (bottom right), x coord (bottom right)]
 returns: optical flow vector corresponding to that person (2d array or 3d array)
 """
-def get_optical_flow_vector(flow, box):
+def get_optical_flow_vector(flow, box, X_SIZE, Y_SIZE):
 	if flow == "nah":
 		return "nah"
-	Y_SIZE=height_img
-	X_SIZE=width_img
+	#print(np.shape(flow))
 	if flow != []:
 		box = [int(box[0]*Y_SIZE),int(box[1]*X_SIZE), int(box[2]*Y_SIZE), int(box[3]*X_SIZE)]
 		#print(box)
@@ -186,7 +183,8 @@ def get_optical_flow_vector(flow, box):
 			for j in range(box[0],box[2]):
 				xflow.append(flow[i][j][0])
 				yflow.append(flow[i][j][1])
-		boxflow = [xflow,yflow]
+		#boxflow = [xflow,yflow]
+		boxflow = [yflow,xflow]
 		#print boxflow
 		x = np.mean(boxflow[0])
 		y = np.mean(boxflow[1])
@@ -196,11 +194,9 @@ def get_optical_flow_vector(flow, box):
 
 
 
-def get_optical_flow_vector2(flow, box):
+def get_optical_flow_vector2(flow, box, X_SIZE, Y_SIZE):
 	if flow == "nah":
 		return "nah"
-	Y_SIZE=height_img
-	X_SIZE=width_img
 	l_count_x = []
 	l_count_y = []
 	r_count_x = []
@@ -217,9 +213,11 @@ def get_optical_flow_vector2(flow, box):
 					r_count_x.append(flow[i][j][0])
 					r_count_y.append(flow[i][j][1])
 		if len(l_count_x) >= len(r_count_x):
-			boxflow = [l_count_x,l_count_y]
+			#boxflow = [l_count_x,l_count_y]
+			boxflow = [l_count_y,l_count_x]
 		else:
-			boxflow = [r_count_x,r_count_y]
+			#boxflow = [r_count_x,r_count_y]
+			boxflow = [r_count_y,r_count_x]
 		#print boxflow
 		x = np.mean(boxflow[0])
 		y = np.mean(boxflow[1])
