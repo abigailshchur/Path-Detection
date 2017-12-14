@@ -11,7 +11,7 @@ def collect_data(path, start_frame, end_frame, last_frame, detection_graph, cate
 	magic_number = 0.05 # the most magical of magical numbers
 	all_data = [] # will be pandas matrix
 	count_pics=0
-	base_img = cv2.imread(path+"0.jpg")
+	base_img = cv2.imread(path+"1.jpg")
 	X_SIZE, Y_SIZE, channels = base_img.shape
 	print(X_SIZE)
 	print(Y_SIZE)
