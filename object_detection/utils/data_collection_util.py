@@ -11,7 +11,7 @@ def collect_data(path, start_frame, end_frame, last_frame, detection_graph, cate
 	magic_number = 0.05 # the most magical of magical numbers
 	all_data = [] # will be pandas matrix
 	count_pics=0
-	base_img = cv2.imread(path+"1.jpg")
+	base_img = cv2.imread(path+"1.png")
 	X_SIZE, Y_SIZE, channels = base_img.shape
 	print(X_SIZE)
 	print(Y_SIZE)
@@ -20,9 +20,9 @@ def collect_data(path, start_frame, end_frame, last_frame, detection_graph, cate
 		if (i % 100 == 0):
 			print(i)
 		count_pics+=1
-		filename = path + str(i) + '.jpg'
+		filename = path + str(i) + '.png'
 		# next file is probably needed for optical flow
-		next_file = path + str(i+6) + '.jpg' if i+6 < last_frame else "end"
+		next_file = path + str(i+6) + '.png' if i+6 < last_frame else "end"
 		# flow should contain optical flow matrix?
 		flow = get_optical_flow(filename, next_file, count_pics)
 
